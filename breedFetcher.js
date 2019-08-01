@@ -1,31 +1,35 @@
-let query = {
-method: 'GET',
-url: 'https://api.thecatapi.com/v1/breeds/search',
-qs: { name: 'howdy' },
-headers: { 'x-api-key': 'DEMO-API-KEY' }
+let query = require('./constant');
+const request = require('request');
+let searchKey;
+let data = {};
+
+const fetchBreedDescription = function(breedName, callback) {
+  query.qs.name = breedName;
+  searchKey = query.url + "?q=" + query.qs.name;
+  // console.log(`Searching for: ${searchKey}`);
+  // console.log(breedName);
+
+  if (query.qs.name === undefined) {
+    callback("No breed name entered", null);
+    process.exit(-1);
+  }
+  
+  request(searchKey, function(error, response, body) {
+    // console.log(error);
+    if (error !== null) {
+      callback(`Please check your url (${error.host}`, null);
+    } else {
+      data = JSON.parse(body);
+  
+      // console.log(data);
+      // console.log(Object.keys(data).length);
+      // console.log(typeof data);
+      // console.log(data.constructor);
+    
+      //Q: add features to select specific breed from a widlcard search
+      (Object.keys(data).length === 0 ? callback(`Failed to find breed ${query.qs.name}`, null) : callback(null, data[0].description));
+    }
+  });
 };
 
-const request = require('request');
-let data;
-
-if (process.argv[2] === "") {
-  return "Please enter a breed of cat!";
-}
-
-query.qs.name = process.argv[2];
-// console.log(query.qs.name);
-
-request(query, function (error, response, body) {
-  if (error) throw new Error('Failed to request details: ', error);
-  // console.log(body);
-  // console.log(typeof body)
-
-  data = JSON.parse(body);
-
-  // console.log(data);
-  // console.log(data[0].description);
-  // console.log(typeof data);
-  
-  (data ? console.log(data[0].description) : console.log(`Failed to find breed ${query.qs.name}`));
-
-});
+module.exports = { fetchBreedDescription };
